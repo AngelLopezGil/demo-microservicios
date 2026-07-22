@@ -12,18 +12,15 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Estado).HasConversion<string>().HasMaxLength(20);
 
-        // Las líneas son parte del agregado: entidad "owned", tabla propia,
-        // sin repositorio ni DbSet independiente — se accede SIEMPRE vía Pedido
         builder.OwnsMany(p => p.Lineas, linea =>
         {
             linea.ToTable("LineasPedido");
             linea.WithOwner().HasForeignKey("PedidoId");
-            linea.Property<int>("Id");           // clave técnica de la fila
+            linea.Property<int>("Id");
             linea.HasKey("Id");
             linea.Property(l => l.PrecioUnitario).HasPrecision(18, 2);
         });
 
-        // EF debe leer/escribir el campo _lineas, no la propiedad de solo lectura
         builder.Navigation(p => p.Lineas)
                .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
