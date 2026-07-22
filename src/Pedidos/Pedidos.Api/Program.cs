@@ -1,41 +1,45 @@
+using Microsoft.EntityFrameworkCore;
+using Pedidos.Application.Abstracciones;
+using Pedidos.Application.Pedidos.ConfirmarPedido;
+using Pedidos.Application.Pedidos.CrearPedido;
+using Pedidos.Infrastructure.Persistencia;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Persistencia: el DbContext lee la connection string de appsettings
+builder.Services.AddDbContext<PedidosDbContext>(opciones =>
+    opciones.UseSqlServer(builder.Configuration.GetConnectionString("PedidosDb")));
+
+// Inversión de dependencias en acción: cuando alguien pida IPedidoRepository,
+// el contenedor de DI entrega el PedidoRepository de EF. Application nunca lo sabrá.
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<CrearPedidoHandler>();
+builder.Services.AddScoped<ConfirmarPedidoHandler>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+// Endpoint de creación: el body JSON se deserializa solo al command
+app.MapPost("/pedidos", async (CrearPedidoCommand command,
+                               CrearPedidoHandler handler,
+                               CancellationToken ct) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var id = await handler.Handle(command, ct);
+    return Results.Created($"/pedidos/{id}", new { id });
+});
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// TODO (tuyo): endpoint POST /pedidos/{id}/confirmar
+//  - la ruta lleva el id: app.MapPost("/pedidos/{id:guid}/confirmar", ...)
+//  - la lambda recibe (Guid id, ConfirmarPedidoHandler handler, CancellationToken ct)
+//  - construye el ConfirmarPedidoCommand con ese id y llama al handler
+//  - si devuelve true → Results.NoContent(); si false → Results.NotFound()
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
