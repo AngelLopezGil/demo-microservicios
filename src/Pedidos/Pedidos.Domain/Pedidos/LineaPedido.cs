@@ -8,7 +8,7 @@ public sealed record LineaPedido
     public int Cantidad {get;}
     public decimal PrecioUnitario {get;}
 
-    public LineaPedido (Guid productId, int cantidad, decimal precioUnitario)
+    public LineaPedido (Guid productoId, int cantidad, decimal precioUnitario)
     {
         if (cantidad <= 0)
             throw new ExcepcionDeDominio("La cantidad debe ser mayor que cero");
@@ -16,7 +16,7 @@ public sealed record LineaPedido
         if (precioUnitario < 0)
             throw new ExcepcionDeDominio("El precio unitario no puede ser negativo");
 
-        ProductoId = productId;
+        ProductoId = productoId;
         Cantidad = cantidad;
         PrecioUnitario = precioUnitario;
     }

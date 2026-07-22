@@ -19,6 +19,11 @@ public class Pedido
         Estado = EstadoPedido.Pendiente;
     }
 
+    private Pedido()
+    {
+        _lineas = new List<LineaPedido>();
+    }
+
     public static Pedido Crear (Guid clienteId, IEnumerable<LineaPedido> lineas)
     {
         var listaLineas = lineas?.ToList() ?? new List<LineaPedido>();
