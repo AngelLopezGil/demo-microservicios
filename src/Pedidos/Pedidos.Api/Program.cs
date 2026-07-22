@@ -36,10 +36,12 @@ app.MapPost("/pedidos", async (CrearPedidoCommand command,
     return Results.Created($"/pedidos/{id}", new { id });
 });
 
-// TODO (tuyo): endpoint POST /pedidos/{id}/confirmar
-//  - la ruta lleva el id: app.MapPost("/pedidos/{id:guid}/confirmar", ...)
-//  - la lambda recibe (Guid id, ConfirmarPedidoHandler handler, CancellationToken ct)
-//  - construye el ConfirmarPedidoCommand con ese id y llama al handler
-//  - si devuelve true → Results.NoContent(); si false → Results.NotFound()
+app.MapPost("/pedidos/{id:guid}/confirmar", async (Guid id,
+                                                    ConfirmarPedidoHandler handler,
+                                                    CancellationToken ct) =>
+{
+    var confirmado = await handler.Handle(new ConfirmarPedidoCommand(id), ct);
+    return confirmado ? Results.NoContent() : Results.NotFound();
+});
 
 app.Run();
