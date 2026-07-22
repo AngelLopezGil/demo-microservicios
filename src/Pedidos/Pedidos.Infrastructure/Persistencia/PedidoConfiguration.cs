@@ -18,6 +18,8 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
             linea.WithOwner().HasForeignKey("PedidoId");
             linea.Property<int>("Id");
             linea.HasKey("Id");
+            linea.Property(l => l.ProductoId);
+            linea.Property(l => l.Cantidad);
             linea.Property(l => l.PrecioUnitario).HasPrecision(18, 2);
         });
 
