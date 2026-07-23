@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Pedidos.Api;
 using Pedidos.Application.Abstracciones;
 using Pedidos.Application.Pedidos.ConfirmarPedido;
 using Pedidos.Application.Pedidos.CrearPedido;
+using Pedidos.Application.Pedidos.ObtenerPedido;
 using Pedidos.Infrastructure.Persistencia;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,11 +17,15 @@ builder.Services.AddDbContext<PedidosDbContext>(opciones =>
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<CrearPedidoHandler>();
 builder.Services.AddScoped<ConfirmarPedidoHandler>();
+builder.Services.AddScoped<IPedidoQueries, PedidoQueries>();
+builder.Services.AddExceptionHandler<ManejadorExcepcionesDominio>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -27,7 +33,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Endpoint de creación: el body JSON se deserializa solo al command
+app.MapGet("/pedidos/{id:guid}", async (Guid id, 
+                                        IPedidoQueries queries,
+                                        CancellationToken ct) =>
+{
+    var pedidoDto = await queries.ObtenerPorId(id, ct);
+
+    if(pedidoDto is null)
+        return Results.NotFound();
+
+    return Results.Ok(pedidoDto);
+
+});
+
 app.MapPost("/pedidos", async (CrearPedidoCommand command,
                                CrearPedidoHandler handler,
                                CancellationToken ct) =>
