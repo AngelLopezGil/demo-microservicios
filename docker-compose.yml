@@ -9,6 +9,15 @@ services:
       - "1433:1433"
     volumes:
       - sqldata:/var/opt/mssql
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=Demo_Password123!
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
 
 volumes:
   sqldata:
