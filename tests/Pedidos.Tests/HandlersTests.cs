@@ -2,6 +2,7 @@ using Pedidos.Application.Pedidos.CrearPedido;
 using Pedidos.Application.Pedidos.ConfirmarPedido;
 using Pedidos.Domain.Pedidos;
 using System.Collections;
+using Contratos;
 
 namespace Pedidos.Tests;
 
@@ -17,13 +18,18 @@ public class HandlersTests
     public async Task CrearPedido_ConCommandValido_GuardaElPedido()
     {
         var repositorio = new FakePedidoRepository();
-        var handler = new CrearPedidoHandler(repositorio);
+        var eventos = new FakePublicadorEventos();
+        var handler = new CrearPedidoHandler(repositorio, eventos);
 
         var id = await handler.Handle(CommandValido(), CancellationToken.None);
 
         Assert.Single(repositorio.Pedidos);
         Assert.Equal(1, repositorio.VecesGuardado);
         Assert.Contains(repositorio.Pedidos, p => p.Id == id);
+
+        var publicado = Assert.Single(eventos.Publicados);
+        var evento = Assert.IsType<PedidoCreado>(publicado);
+        Assert.Equal(id, evento.PedidoId);
     }
 
     [Fact]
@@ -36,6 +42,7 @@ public class HandlersTests
 
         var resultado = await handler.Handle(new ConfirmarPedidoCommand(pedido.Id), CancellationToken.None);
 
+        Assert.True(resultado);
         Assert.Equal(EstadoPedido.Confirmado, pedido.Estado);
         Assert.Equal(1, repositorio.VecesGuardado);
     }

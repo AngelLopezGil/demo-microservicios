@@ -5,3 +5,6 @@
 - Tests con xUnit; el dominio se testea sin mocks
 - Antes de crear cualquier clase nueva, explícame brevemente dónde va y por qué
 - Responde siempre en español
+## Estado actual
+- Fase 1 COMPLETA: migración aplicada, API funcional (crear/confirmar/obtener), 11 tests, excepciones→400
+- Fase 2 en curso: contratos de eventos creados, Pedidos publica PedidoCreado vía MassTransit 8.x (v9 es comercial, no subir)

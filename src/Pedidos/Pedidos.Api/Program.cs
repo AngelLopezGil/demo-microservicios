@@ -5,6 +5,8 @@ using Pedidos.Application.Pedidos.ConfirmarPedido;
 using Pedidos.Application.Pedidos.CrearPedido;
 using Pedidos.Application.Pedidos.ObtenerPedido;
 using Pedidos.Infrastructure.Persistencia;
+using MassTransit;
+using Pedidos.Infrastructure.Mensajeria;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,21 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((contexto, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("admin");
+            h.Password("Demo_Password123!");
+        });
+        cfg.ConfigureEndpoints(contexto);
+    });
+});
+
+builder.Services.AddScoped<IPublicadorEventos, PublicadorEventosMassTransit>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
