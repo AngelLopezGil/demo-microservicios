@@ -1,25 +1,24 @@
 using Pedidos.Application.Abstracciones;
-using Pedidos.Domain.Pedidos;
 
-namespace Pedidos.Application.Pedidos.ConfirmarPedido;
+namespace Pedidos.Application.Pedidos.CancelarPedido;
 
-public class ConfirmarPedidoHandler : ICommandHandler<ConfirmarPedidoCommand, bool>
+public class CancelarPedidoHandler : ICommandHandler<CancelarPedidoCommand, bool>
 {
     private readonly IPedidoRepository _repositorio;
 
-    public ConfirmarPedidoHandler(IPedidoRepository repositorio)
+    public CancelarPedidoHandler(IPedidoRepository repositorio)
     {
         _repositorio = repositorio;
     }
 
-    public async Task<bool> Handle(ConfirmarPedidoCommand command, CancellationToken cancellationToken)
+    public async Task<bool> Handle(CancelarPedidoCommand command, CancellationToken cancellationToken)
     {
         var pedido = await _repositorio.ObtenerPorId(command.PedidoId, cancellationToken);
 
         if (pedido is null)
             return false;
 
-        pedido.Confirmar();
+        pedido.Cancelar();
 
         await _repositorio.GuardarCambios(cancellationToken);
         return true;

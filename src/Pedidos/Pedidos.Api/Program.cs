@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Pedidos.Api;
 using Pedidos.Application.Abstracciones;
+using Pedidos.Application.Pedidos.CancelarPedido;
 using Pedidos.Application.Pedidos.ConfirmarPedido;
 using Pedidos.Application.Pedidos.CrearPedido;
 using Pedidos.Application.Pedidos.ObtenerPedido;
+using Pedidos.Api.Consumers;
 using Pedidos.Infrastructure.Persistencia;
 using MassTransit;
 using Pedidos.Infrastructure.Mensajeria;
@@ -19,6 +21,7 @@ builder.Services.AddDbContext<PedidosDbContext>(opciones =>
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<CrearPedidoHandler>();
 builder.Services.AddScoped<ConfirmarPedidoHandler>();
+builder.Services.AddScoped<CancelarPedidoHandler>();
 builder.Services.AddScoped<IPedidoQueries, PedidoQueries>();
 builder.Services.AddExceptionHandler<ManejadorExcepcionesDominio>();
 builder.Services.AddProblemDetails();
@@ -28,6 +31,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<StockReservadoConsumer>();
+    x.AddConsumer<StockRechazadoConsumer>();
     x.UsingRabbitMq((contexto, cfg) =>
     {
         cfg.Host("localhost", "/", h =>

@@ -3,6 +3,7 @@ using Pedidos.Application.Pedidos.ConfirmarPedido;
 using Pedidos.Domain.Pedidos;
 using System.Collections;
 using Contratos;
+using Pedidos.Application.Pedidos.CancelarPedido;
 
 namespace Pedidos.Tests;
 
@@ -54,6 +55,33 @@ public class HandlersTests
         var handler = new ConfirmarPedidoHandler(repositorio);
 
         var resultado = await handler.Handle(new ConfirmarPedidoCommand(Guid.NewGuid()), CancellationToken.None);
+
+        Assert.False(resultado);
+        Assert.Equal(0, repositorio.VecesGuardado);
+    }
+
+     [Fact]
+    public async Task CancelarPedido_Existente_DevuelveTrueYConfirma()
+    {
+        var repositorio = new FakePedidoRepository();
+        var pedido = Pedido.Crear(Guid.NewGuid(), new List<LineaPedido> {new(Guid.NewGuid(), cantidad: 2, precioUnitario: 10m)});
+        repositorio.Pedidos.Add(pedido);
+        var handler = new CancelarPedidoHandler(repositorio);
+
+        var resultado = await handler.Handle(new CancelarPedidoCommand(pedido.Id), CancellationToken.None);
+
+        Assert.True(resultado);
+        Assert.Equal(EstadoPedido.Cancelado, pedido.Estado);
+        Assert.Equal(1, repositorio.VecesGuardado);
+    }
+
+    [Fact]
+    public async Task CancelarPedido_Inexistente_DevuelveFalseYNoGuarda()
+    {
+        var repositorio = new FakePedidoRepository();
+        var handler = new CancelarPedidoHandler(repositorio);
+
+        var resultado = await handler.Handle(new CancelarPedidoCommand(Guid.NewGuid()), CancellationToken.None);
 
         Assert.False(resultado);
         Assert.Equal(0, repositorio.VecesGuardado);
