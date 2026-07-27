@@ -1,4 +1,5 @@
 using Inventario.Api;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,21 @@ builder.Services.AddDbContext<InventarioDbContext>(opciones =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ReservaStockConsumer>();
+
+    x.UsingRabbitMq((contexto, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("admin");
+            h.Password("Demo_Password123!");
+        });
+        cfg.ConfigureEndpoints(contexto);
+    });
+});
 
 var app = builder.Build();
 
