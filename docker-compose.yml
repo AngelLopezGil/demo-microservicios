@@ -18,6 +18,12 @@ services:
       - "5672:5672"
       - "15672:15672"
     restart: unless-stopped
+  maildev:
+    image: maildev/maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    restart: unless-stopped
 
 volumes:
   sqldata:
