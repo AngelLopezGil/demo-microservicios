@@ -35,10 +35,10 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<StockRechazadoConsumer>();
     x.UsingRabbitMq((contexto, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        cfg.Host(builder.Configuration["Rabbit:Host"] ?? "localhost", "/", h =>
         {
-            h.Username("admin");
-            h.Password("Demo_Password123!");
+            h.Username(builder.Configuration["Rabbit:Usuario"] ?? "admin");
+            h.Password(builder.Configuration["Rabbit:Password"] ?? "Demo_Password123!");
         });
         cfg.ConfigureEndpoints(contexto);
     });

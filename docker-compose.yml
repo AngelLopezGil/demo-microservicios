@@ -24,6 +24,45 @@ services:
       - "1080:1080"
       - "1025:1025"
     restart: unless-stopped
+  pedidos-api:
+    build:
+      context: .
+      dockerfile: src/Pedidos/Pedidos.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PedidosDb=Server=sqlserver,1433;Database=PedidosDb;User Id=sa;Password=Demo_Password123!;TrustServerCertificate=True
+      - Rabbit__Host=rabbitmq
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    restart: unless-stopped
+  inventario-api:
+    build:
+      context: .
+      dockerfile: src/Inventario/Inventario.Api/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__InventarioDb=Server=sqlserver,1433;Database=InventarioDb;User Id=sa;Password=Demo_Password123!;TrustServerCertificate=True
+      - Rabbit__Host=rabbitmq
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    restart: unless-stopped
+  notificaciones-worker:
+    build:
+      context: .
+      dockerfile: src/Notificaciones/Notificaciones.Worker/Dockerfile
+    environment:
+      - Rabbit__Host=rabbitmq
+      - Smtp__Host=maildev
+    depends_on:
+      - rabbitmq
+      - maildev
+    restart: unless-stopped
 
 volumes:
   sqldata:
