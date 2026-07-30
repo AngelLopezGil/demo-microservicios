@@ -9,8 +9,16 @@ using Pedidos.Api.Consumers;
 using Pedidos.Infrastructure.Persistencia;
 using MassTransit;
 using Pedidos.Infrastructure.Mensajeria;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog(cfg => cfg
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.WithProperty("Servicio", "Pedidos")
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
 
 // Persistencia: el DbContext lee la connection string de appsettings
 builder.Services.AddDbContext<PedidosDbContext>(opciones =>
@@ -47,6 +55,7 @@ builder.Services.AddMassTransit(x =>
 builder.Services.AddScoped<IPublicadorEventos, PublicadorEventosMassTransit>();
 
 var app = builder.Build();
+app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())

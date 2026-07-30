@@ -1,8 +1,16 @@
 using Inventario.Api;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog(cfg => cfg
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.WithProperty("Servicio", "Inventario")
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
 
 builder.Services.AddDbContext<InventarioDbContext>(opciones =>
     opciones.UseSqlServer(builder.Configuration.GetConnectionString("InventarioDb")));
@@ -26,6 +34,8 @@ builder.Services.AddMassTransit(x =>
 });
 
 var app = builder.Build();
+app.UseSerilogRequestLogging();
+
 
 if (app.Environment.IsDevelopment())
 {
