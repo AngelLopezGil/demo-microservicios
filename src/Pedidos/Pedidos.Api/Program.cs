@@ -41,6 +41,11 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<StockReservadoConsumer>();
     x.AddConsumer<StockRechazadoConsumer>();
+    x.AddEntityFrameworkOutbox<PedidosDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.UseBusOutbox();
+    });
     x.UsingRabbitMq((contexto, cfg) =>
     {
         cfg.Host(builder.Configuration["Rabbit:Host"] ?? "localhost", "/", h =>

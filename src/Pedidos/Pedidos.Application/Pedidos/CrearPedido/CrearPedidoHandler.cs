@@ -23,11 +23,9 @@ public class CrearPedidoHandler : ICommandHandler<CrearPedidoCommand, Guid>
         var pedidoLineas = pedido.Lineas.Select(l => new LineaPedidoCreado(l.ProductoId, l.Cantidad)).ToList();
 
         await _repositorio.Agregar(pedido,cancellationToken);
-        await _repositorio.GuardarCambios(cancellationToken);
-
         var evento = new PedidoCreado(pedido.Id, pedido.ClienteId, pedidoLineas);
-
         await _eventos.Publicar(evento, cancellationToken);
+        await _repositorio.GuardarCambios(cancellationToken);
 
         return pedido.Id;
     }

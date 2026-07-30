@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Inventario.Api;
@@ -21,5 +22,9 @@ public class InventarioDbContext : DbContext
             new Stock { ProductoId = Guid.Parse("33333333-3333-3333-3333-333333333333"), Disponible = 10, Reservado = 0 },
             new Stock { ProductoId = Guid.Parse("44444444-4444-4444-4444-444444444444"), Disponible = 3,  Reservado = 0 },
             new Stock { ProductoId = Guid.Parse("55555555-5555-5555-5555-555555555555"), Disponible = 0,  Reservado = 0 });
+        
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

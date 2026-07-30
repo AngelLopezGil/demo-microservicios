@@ -22,6 +22,11 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<ReservaStockConsumer>();
 
+    x.AddEntityFrameworkOutbox<InventarioDbContext>(o => o.UseSqlServer());
+
+    x.AddConfigureEndpointsCallback((context, name, cfg) =>
+        cfg.UseEntityFrameworkOutbox<InventarioDbContext>(context));
+
     x.UsingRabbitMq((contexto, cfg) =>
     {
         cfg.Host(builder.Configuration["Rabbit:Host"] ?? "localhost", "/", h =>
