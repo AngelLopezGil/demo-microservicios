@@ -46,13 +46,9 @@ builder.Services.AddMassTransit(x =>
         o.UseSqlServer();
         o.UseBusOutbox();
     });
-    x.UsingRabbitMq((contexto, cfg) =>
+    x.UsingAzureServiceBus((contexto, cfg) =>
     {
-        cfg.Host(builder.Configuration["Rabbit:Host"] ?? "localhost", "/", h =>
-        {
-            h.Username(builder.Configuration["Rabbit:Usuario"] ?? "admin");
-            h.Password(builder.Configuration["Rabbit:Password"] ?? "Demo_Password123!");
-        });
+        cfg.Host(builder.Configuration.GetConnectionString("ServiceBus"));
         cfg.ConfigureEndpoints(contexto);
     });
 });

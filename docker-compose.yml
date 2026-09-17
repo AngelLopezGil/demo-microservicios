@@ -9,15 +9,6 @@ services:
       - "1433:1433"
     volumes:
       - sqldata:/var/opt/mssql
-  rabbitmq:
-    image: rabbitmq:3-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=Demo_Password123!
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    restart: unless-stopped
   maildev:
     image: maildev/maildev
     ports:
@@ -33,10 +24,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__PedidosDb=Server=sqlserver,1433;Database=PedidosDb;User Id=sa;Password=Demo_Password123!;TrustServerCertificate=True
-      - Rabbit__Host=rabbitmq
+      - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
     depends_on:
       - sqlserver
-      - rabbitmq
     restart: unless-stopped
   inventario-api:
     build:
@@ -47,20 +37,18 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__InventarioDb=Server=sqlserver,1433;Database=InventarioDb;User Id=sa;Password=Demo_Password123!;TrustServerCertificate=True
-      - Rabbit__Host=rabbitmq
+      - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
     depends_on:
       - sqlserver
-      - rabbitmq
     restart: unless-stopped
   notificaciones-worker:
     build:
       context: .
       dockerfile: src/Notificaciones/Notificaciones.Worker/Dockerfile
     environment:
-      - Rabbit__Host=rabbitmq
+      - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
       - Smtp__Host=maildev
     depends_on:
-      - rabbitmq
       - maildev
     restart: unless-stopped
 
