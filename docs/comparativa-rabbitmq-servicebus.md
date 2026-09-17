@@ -122,7 +122,7 @@ stockrechazado         0          0
 stockreservado         0          0
 ```
 
-![Cola reservastock_error en el portal de Azure](img/reservastock-error.png)
+![Cola reservastock_error en el portal de Azure](img/reservastock_error.png)
 
 La cola `reservastock_error` no existía antes: MassTransit la creó al necesitarla. Y `reservastock` mantiene su contador de dead-letter en cero, porque el mensaje envenenado nunca llegó a manos del mecanismo nativo.
 
