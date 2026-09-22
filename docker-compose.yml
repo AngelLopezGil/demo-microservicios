@@ -9,12 +9,6 @@ services:
       - "1433:1433"
     volumes:
       - sqldata:/var/opt/mssql
-  maildev:
-    image: maildev/maildev
-    ports:
-      - "1080:1080"
-      - "1025:1025"
-    restart: unless-stopped
   pedidos-api:
     build:
       context: .
@@ -47,9 +41,9 @@ services:
       dockerfile: src/Notificaciones/Notificaciones.Worker/Dockerfile
     environment:
       - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
-      - Smtp__Host=maildev
-    depends_on:
-      - maildev
+      - ConnectionStrings__Email=${EMAIL_CONNECTION}
+      - Email__Remitente=${EMAIL_REMITENTE}
+      - Email__Destinatario=${EMAIL_DESTINATARIO}
     restart: unless-stopped
 
 volumes:

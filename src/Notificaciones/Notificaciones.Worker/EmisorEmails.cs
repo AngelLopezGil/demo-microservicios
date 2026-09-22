@@ -1,25 +1,35 @@
-using System.Net.Mail;
+using Azure;
+using Azure.Communication.Email;
 
 namespace Notificaciones.Worker;
 
 public class EmisorEmails
 {
-    private readonly string _host;
-    private readonly int _puerto;
+    private readonly EmailClient _cliente;
+    private readonly string _remitente;
+    private readonly string _destinatario;
 
     public EmisorEmails(IConfiguration configuration)
     {
-        _host = configuration["Smtp:Host"] ?? "localhost";
-        _puerto = int.Parse(configuration["Smtp:Puerto"] ?? "1025");
+        var cadena = configuration.GetConnectionString("Email")
+            ?? throw new InvalidOperationException("Falta ConnectionStrings:Email");
+        _remitente = configuration["Email:Remitente"]
+            ?? throw new InvalidOperationException("Falta Email:Remitente");
+        _destinatario = configuration["Email:Destinatario"]
+            ?? throw new InvalidOperationException("Falta Email:Destinatario");
+
+        _cliente = new EmailClient(cadena);
     }
 
     public async Task Enviar(string asunto, string cuerpo, CancellationToken cancellationToken)
     {
-        using var cliente = new SmtpClient(_host, _puerto);
-        using var mensaje = new MailMessage(
-            from: "pedidos@demo.local",
-            to: "cliente@demo.local",
-            asunto, cuerpo);
-        await cliente.SendMailAsync(mensaje, cancellationToken);
+        await _cliente.SendAsync(
+            WaitUntil.Completed,
+            senderAddress: _remitente,
+            recipientAddress: _destinatario,
+            subject: asunto,
+            htmlContent: null,
+            plainTextContent: cuerpo,
+            cancellationToken: cancellationToken);
     }
 }
