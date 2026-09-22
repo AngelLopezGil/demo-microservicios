@@ -1,3 +1,5 @@
-**/bin/
-**/obj/
-.git/
+**/bin
+**/obj
+.git
+publish-inventario
+*.zip
