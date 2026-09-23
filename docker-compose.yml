@@ -18,7 +18,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__PedidosDb=Server=sqlserver,1433;Database=PedidosDb;User Id=sa;Password=Demo_Password123!;TrustServerCertificate=True
-      - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
     depends_on:
       - sqlserver
     restart: unless-stopped
@@ -31,7 +30,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__InventarioDb=Server=sqlserver,1433;Database=InventarioDb;User Id=sa;Password=Demo_Password123!;TrustServerCertificate=True
-      - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
     depends_on:
       - sqlserver
     restart: unless-stopped
@@ -40,7 +38,6 @@ services:
       context: .
       dockerfile: src/Notificaciones/Notificaciones.Worker/Dockerfile
     environment:
-      - ConnectionStrings__ServiceBus=${SERVICEBUS_CONNECTION}
       - ConnectionStrings__Email=${EMAIL_CONNECTION}
       - Email__Remitente=${EMAIL_REMITENTE}
       - Email__Destinatario=${EMAIL_DESTINATARIO}

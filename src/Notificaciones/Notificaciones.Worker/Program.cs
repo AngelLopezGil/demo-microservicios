@@ -20,7 +20,7 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingAzureServiceBus((contexto, cfg) =>
     {
-        cfg.Host(builder.Configuration.GetConnectionString("ServiceBus"));
+        cfg.Host(new Uri("sb://sb-demo-alg-7421.servicebus.windows.net"));
         cfg.ConfigureEndpoints(contexto);
     });
 });
