@@ -1,5 +1,6 @@
 using Azure;
 using Azure.Communication.Email;
+using Azure.Identity;
 
 namespace Notificaciones.Worker;
 
@@ -11,14 +12,14 @@ public class EmisorEmails
 
     public EmisorEmails(IConfiguration configuration)
     {
-        var cadena = configuration.GetConnectionString("Email")
-            ?? throw new InvalidOperationException("Falta ConnectionStrings:Email");
+        var endpoint = configuration["Email:Endpoint"]
+            ?? throw new InvalidOperationException("Falta Email:Endpoint");
         _remitente = configuration["Email:Remitente"]
             ?? throw new InvalidOperationException("Falta Email:Remitente");
         _destinatario = configuration["Email:Destinatario"]
             ?? throw new InvalidOperationException("Falta Email:Destinatario");
 
-        _cliente = new EmailClient(cadena);
+        _cliente = new EmailClient(new Uri(endpoint), new DefaultAzureCredential());
     }
 
     public async Task Enviar(string asunto, string cuerpo, CancellationToken cancellationToken)
