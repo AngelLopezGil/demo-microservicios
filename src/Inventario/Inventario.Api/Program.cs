@@ -12,9 +12,11 @@ builder.Services.AddSerilog(cfg => cfg
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Azure", Serilog.Events.LogEventLevel.Warning)
     .Enrich.WithProperty("Servicio", "Inventario")
     .WriteTo.Console(outputTemplate:
-        "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
+        "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"),
+    writeToProviders: true);
 
 builder.Services.AddOpenTelemetry()
     .UseAzureMonitor(o => o.Credential = new DefaultAzureCredential())

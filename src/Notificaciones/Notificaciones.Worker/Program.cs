@@ -10,14 +10,18 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSerilog(cfg => cfg
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Azure", Serilog.Events.LogEventLevel.Warning)
     .Enrich.WithProperty("Servicio", "Notificaciones")
     .WriteTo.Console(outputTemplate:
-        "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
+        "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"),
+        writeToProviders: true);
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(t => t
         .AddSource(DiagnosticHeaders.DefaultListenerName)
-        .AddAzureMonitorTraceExporter(o => o.Credential = new DefaultAzureCredential()));
+        .AddAzureMonitorTraceExporter(o => o.Credential = new DefaultAzureCredential()))
+    .WithLogging(l => l
+        .AddAzureMonitorLogExporter(o => o.Credential = new DefaultAzureCredential()));
 
 builder.Services.AddSingleton<EmisorEmails>();
 
