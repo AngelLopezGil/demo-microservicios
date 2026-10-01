@@ -1,3 +1,6 @@
+using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using MassTransit.Logging;
 using Microsoft.EntityFrameworkCore;
 using Pedidos.Api;
 using Pedidos.Application.Abstracciones;
@@ -16,9 +19,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSerilog(cfg => cfg
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .Enrich.WithProperty("Servicio", "Pedidos")
     .WriteTo.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
+
+builder.Services.AddOpenTelemetry()
+    .UseAzureMonitor(o => o.Credential = new DefaultAzureCredential())
+    .WithTracing(t => t.AddSource(DiagnosticHeaders.DefaultListenerName));
 
 // Persistencia: el DbContext lee la connection string de appsettings
 builder.Services.AddDbContext<PedidosDbContext>(opciones =>
@@ -39,6 +47,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.DisableUsageTelemetry();
     x.AddConsumer<StockReservadoConsumer>();
     x.AddConsumer<StockRechazadoConsumer>();
     x.AddEntityFrameworkOutbox<PedidosDbContext>(o =>

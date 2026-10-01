@@ -1,3 +1,6 @@
+using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.Exporter;
+using MassTransit.Logging;
 using MassTransit;
 using Notificaciones.Worker;
 using Serilog;
@@ -11,10 +14,16 @@ builder.Services.AddSerilog(cfg => cfg
     .WriteTo.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
 
+builder.Services.AddOpenTelemetry()
+    .WithTracing(t => t
+        .AddSource(DiagnosticHeaders.DefaultListenerName)
+        .AddAzureMonitorTraceExporter(o => o.Credential = new DefaultAzureCredential()));
+
 builder.Services.AddSingleton<EmisorEmails>();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.DisableUsageTelemetry();
     x.AddConsumer<NotificarConfirmacionConsumer>();
     x.AddConsumer<NotificarCancelacionConsumer>();
 

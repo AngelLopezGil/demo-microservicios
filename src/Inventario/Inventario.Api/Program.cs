@@ -1,3 +1,6 @@
+using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using MassTransit.Logging;
 using Inventario.Api;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSerilog(cfg => cfg
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .Enrich.WithProperty("Servicio", "Inventario")
     .WriteTo.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] [{Servicio}] {Message:lj}{NewLine}{Exception}"));
+
+builder.Services.AddOpenTelemetry()
+    .UseAzureMonitor(o => o.Credential = new DefaultAzureCredential())
+    .WithTracing(t => t.AddSource(DiagnosticHeaders.DefaultListenerName));
 
 builder.Services.AddDbContext<InventarioDbContext>(opciones =>
     opciones.UseSqlServer(builder.Configuration.GetConnectionString("InventarioDb")));
@@ -20,6 +28,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.DisableUsageTelemetry();
     x.AddConsumer<ReservaStockConsumer>();
 
     x.AddEntityFrameworkOutbox<InventarioDbContext>(o => o.UseSqlServer());
