@@ -1,0 +1,82 @@
+name: Desplegar en Azure
+
+# Se dispara solo en azure-migration: la rama main conserva la version local
+# con RabbitMQ y MailDev, que no tiene sentido desplegar en la nube.
+on:
+  push:
+    branches: [ azure-migration ]
+  workflow_dispatch:
+
+# id-token: write es lo que permite a GitHub emitir el token OIDC que Azure
+# verifica. Sin esta linea el login falla, y es el error mas comun al montar esto.
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  GRUPO: rg-demo-microservicios
+  REGISTRO: acrdemoalg7421
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Ejecutar tests
+        run: dotnet test --configuration Release
+
+      # Autenticacion sin secretos: GitHub firma un token que dice quien es y
+      # desde que repositorio y rama viene. Azure lo verifica contra la credencial
+      # federada. No hay ninguna contrasena almacenada en ninguna parte.
+      - name: Iniciar sesion en Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Preparar la CLI
+        run: |
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az extension add --name containerapp --upgrade --only-show-errors
+
+      - name: Iniciar sesion en el registro
+        run: az acr login --name ${{ env.REGISTRO }}
+
+      # La etiqueta es el hash corto del commit. Asi cada imagen queda atada al
+      # codigo exacto que la produjo, en vez de a un numero de version que hay
+      # que acordarse de subir a mano.
+      - name: Construir y subir imagenes
+        run: |
+          TAG=${GITHUB_SHA::7}
+          SERVIDOR=${{ env.REGISTRO }}.azurecr.io
+
+          docker build -t $SERVIDOR/inventario-api:$TAG        -f src/Inventario/Inventario.Api/Dockerfile .
+          docker build -t $SERVIDOR/pedidos-api:$TAG           -f src/Pedidos/Pedidos.Api/Dockerfile .
+          docker build -t $SERVIDOR/notificaciones-worker:$TAG -f src/Notificaciones/Notificaciones.Worker/Dockerfile .
+
+          docker push $SERVIDOR/inventario-api:$TAG
+          docker push $SERVIDOR/pedidos-api:$TAG
+          docker push $SERVIDOR/notificaciones-worker:$TAG
+
+      - name: Desplegar en Container Apps
+        run: |
+          TAG=${GITHUB_SHA::7}
+          SERVIDOR=${{ env.REGISTRO }}.azurecr.io
+
+          az containerapp update -n ca-inventario     -g ${{ env.GRUPO }} --image $SERVIDOR/inventario-api:$TAG        --only-show-errors
+          az containerapp update -n ca-pedidos        -g ${{ env.GRUPO }} --image $SERVIDOR/pedidos-api:$TAG           --only-show-errors
+          az containerapp update -n ca-notificaciones -g ${{ env.GRUPO }} --image $SERVIDOR/notificaciones-worker:$TAG --only-show-errors
+
+      - name: Resumen
+        run: |
+          echo "Desplegado el commit ${GITHUB_SHA::7}"
+          az containerapp list -g ${{ env.GRUPO }} --query "[].{app:name, imagen:properties.template.containers[0].image}" -o table
