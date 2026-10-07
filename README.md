@@ -1,6 +1,7 @@
 # Demo de microservicios en .NET 10
 
 [![CI](https://github.com/AngelLopezGil/demo-microservicios/actions/workflows/ci.yml/badge.svg)](https://github.com/AngelLopezGil/demo-microservicios/actions/workflows/ci.yml)
+![Desplegar en Azure](https://github.com/AngelLopezGil/demo-microservicios/actions/workflows/desplegar-azure.yml/badge.svg?branch=azure-migration)
 
 Un sistema de pedidos con tres microservicios que se comunican por eventos. 
 .NET moderno, mensajería asíncrona con RabbitMQ, outbox/inbox transaccional, logging estructurado y todo orquestado con Docker Compose.
