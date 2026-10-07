@@ -7,6 +7,19 @@ Un sistema de pedidos con tres microservicios que se comunican por eventos.
 
 Es un proyecto de aprendizaje deliberado, y por eso las decisiones de arquitectura están documentadas más abajo. Incluidas las que descarté y por qué.
 
+## También existe una versión en Azure
+
+Esta rama es la versión local: se levanta entera con `docker compose up -d --build` y no necesita cuenta de Azure, ni credenciales, ni nada más que Docker. Es la que conviene probar si quieres verlo funcionando en cinco minutos.
+
+En la rama [`azure-migration`](https://github.com/AngelLopezGil/demo-microservicios/tree/azure-migration) está el mismo sistema desplegado en Azure sobre servicios gestionados: Container Apps, Service Bus, Azure SQL, Communication Services y Application Insights, con identidades administradas en lugar de contraseñas y despliegue continuo desde GitHub Actions.
+
+Las dos ramas conviven a propósito. Comparar el diff entre ellas enseña exactamente qué hubo que cambiar para migrar, y es bastante menos de lo que suele esperarse: el cambio de RabbitMQ a Service Bus fue un paquete NuGet y tres bloques de configuración, sin tocar un solo consumer, handler ni test.
+
+Lo que cambió, lo que no, y lo que me sorprendió está en estos dos documentos de esa rama:
+
+- [De RabbitMQ a Azure Service Bus](https://github.com/AngelLopezGil/demo-microservicios/blob/azure-migration/docs/comparativa-rabbitmq-servicebus.md)
+- [Un sistema sin credenciales](https://github.com/AngelLopezGil/demo-microservicios/blob/azure-migration/docs/seguridad-sin-credenciales.md)
+
 ## Arquitectura
 
 ```mermaid
